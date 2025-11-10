@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desafio Logístico: Otimizando o Layout do Armarmazém</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #004a99; /* Cor principal da Logística */
+            border-bottom: 3px solid #ffaa00;
+            padding-bottom: 10px;
+        }
+
+        .professor {
+            font-style: italic;
+            color: #555;
+        }
+
+        main {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        /* Área de Informações (Nome e Cronômetro) */
+        .info-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .timer-box {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #cc0000; /* Cor de alerta para o tempo */
+            transition: color 0.5s;
+        }
+        
+        /* Efeito de alerta no cronômetro */
+        @keyframes flash {
+            0% { background-color: transparent; }
+            50% { background-color: rgba(255, 0, 0, 0.2); }
+            100% { background-color: transparent; }
+        }
+
+        .timer-box.flash-red {
+            color: #cc0000;
+            animation: flash 1s infinite;
+        }
+
+        .name-box input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        /* Área do Jogo */
+        .game-area {
+            border: 2px dashed #004a99;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        #level-title {
+            color: #ffaa00;
+        }
+
+        .instructions strong {
+            color: #004a99;
+        }
+
+        #activity-content {
+            min-height: 200px;
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #eee;
+            background-color: #f9f9f9;
+        }
+
+        /* Botões de Controle */
+        .controls {
+            text-align: right;
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end; /* Alinha botões à direita */
+            gap: 10px; /* Espaçamento entre os botões */
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #next-level-btn {
+            background-color: #004a99;
+            color: white;
+            order: 3; /* Coloca este por último */
+        }
+
+        #next-level-btn:hover:not([disabled]) {
+            background-color: #003366;
+        }
+        
+        #reset-btn {
+            background-color: #5cb85c; /* Cor verde para reinício */
+            color: white;
+            order: 1; /* Coloca este em primeiro */
+        }
+
+        #reset-btn:hover {
+            background-color: #449d44;
+        }
+
+        #finish-btn {
+            background-color: #cc0000;
+            color: white;
+            order: 2; /* Coloca este no meio */
+        }
+
+        #finish-btn:hover {
+            background-color: #990000;
+        }
+
+        button[disabled] {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Ranking */
+        .ranking-area {
+            padding: 20px;
+            background-color: #e6e9f0;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .ranking-area h2 {
+            color: #004a99;
+            text-align: center;
+        }
+
+        #ranking-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        #ranking-list li {
+            background-color: #fff;
+            margin-bottom: 5px;
+            padding: 10px;
+            border-left: 5px solid #ffaa00;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .medal-icon {
+            font-size: 1.2em;
+            margin-right: 5px;
+        }
+
+        /* Estilo para questões de Múltipla Escolha */
+        .question-item label {
+            display: block;
+            margin: 8px 0;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .question-item label:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+    </head>
+<body>
+
+    <header>
+        <h1>DESAFIO LOGÍSTICO: OTIMIZANDO O LAYOUT DO ARMAZÉM</h1>
+        <p class="professor">Professor Luiz Eduardo Peixoto</p>
+    </header>
+
+    <main>
+        <section class="info-area">
+            <div class="timer-box">
+                Tempo Restante: <span id="timer">10:00</span>
+            </div>
+            <div class="name-box">
+                <label for="studentName">Nome do Aluno(a):</label>
+                <input type="text" id="studentName" placeholder="Digite seu nome para o ranking" maxlength="50">
+            </div>
+        </section>
+
+        <section class="game-area">
+            <h2 id="level-title">Nível 1: Conceitos Fundamentais</h2>
+            <div class="instructions">
+                <p><strong>Pontos:</strong> Acertos no Nível 1 valem 10 pts, Nível 2 valem 20 pts e Nível 3 valem 30 pts. <span id="current-score">Sua Pontuação: 0</span></p>
+            </div>
+            
+            <div id="activity-content">
+                </div>
+
+            <div class="controls">
+                <button id="reset-btn" onclick="resetActivity()">REINICIAR ATIVIDADE</button>
+                
+                <button id="finish-btn" onclick="finishTask()">FINALIZAR TAREFA</button>
+                <button id="next-level-btn" onclick="nextLevel()" disabled>Avançar Nível</button>
+            </div>
+        </section>
+
+        <section id="ranking-area" class="ranking-area">
+            <h2>Ranking Local <span class="medal-icon">🏅</span></h2>
+            <ol id="ranking-list">
+                </ol>
+        </section>
+    </main>
+
+    <script>
+        // Variáveis Globais
+        let timerInterval;
+        let timeLeft = 600; // 10 minutos * 60 segundos
+        let currentLevel = 1;
+        let currentScore = 0;
+        const MAX_LEVELS = 3;
+
+        // --- Configuração das Questões (3 Níveis) ---
+        const questions = {
+            1: [ // Nível 1: Conceitos Fundamentais (10 pontos por acerto)
+                {
+                    type: 'multiple-choice',
+                    question: "Qual é o principal objetivo do layout de um armazém?",
+                    options: {
+                        a: "Aumentar o estoque e a distância de movimentação.",
+                        b: "Redução do custo e maior produtividade através da melhor utilização do espaço disponível e fluxo racional.",
+                        c: "Priorizar a estocagem de alto volume, independentemente do acesso."
+                    },
+                    correctAnswer: 'b',
+                    points: 10,
+                    reference: "Referência: Seção 'Os objetivos do layout' (Melhor aproveitamento de espaço e fluxo racional)."
+                },
+                {
+                    type: 'multiple-choice',
+                    question: "Quais das seguintes NÃO é considerada uma área essencial em um layout de armazém bem definido?",
+                    options: {
+                        a: "Área de Armazenagem e Área de Recebimento.",
+                        b: "Área de Expedição e Área de Preparação de Pedidos (Picking).",
+                        c: "Área de Lazer e Área de Reuniões de Vendas."
+                    },
+                    correctAnswer: 'c',
+                    points: 10,
+                    reference: "Referência: Áreas A, B, C, D, E do layout (Carga, Recebimento, Armazenagem, Picking, Expedição)."
+                }
+            ],
+            2: [ // Nível 2: Aplicação de Princípios (20 pontos por acerto)
+                {
+                    type: 'multiple-choice',
+                    question: "De acordo com o princípio do 'Giro de Material' (Curva ABC), qual é a localização ideal para produtos de *Alto Giro* (Curva A) em relação aos pontos de entrada e saída do armazém?",
+                    options: {
+                        a: "Em posições menos favoráveis, afastados e em alturas elevadas.",
+                        b: "Próximos aos pontos de entrada e saída (Expedição/Picking) e em altura acessível.",
+                        c: "Distribuídos aleatoriamente para diversificar o uso do espaço."
+                    },
+                    correctAnswer: 'b',
+                    points: 20,
+                    reference: "Referência: Princípio da Mínima Distância (Produtos A devem percorrer o menor caminho)."
+                },
+                {
+                    type: 'multiple-choice',
+                    question: "O Layout em 'U' é um modelo comum na logística. Qual é sua principal característica de fluxo?",
+                    options: {
+                        a: "Cria um fluxo em linha reta, minimizando os corredores.",
+                        b: "Cria um fluxo contínuo onde a entrada (Recebimento) e a saída (Expedição) ocorrem em extremidades opostas do armazém.",
+                        c: "Cria um fluxo contínuo, onde produtos entram e saem pelo mesmo lado do armazém (ponto de entrada/saída próximo)."
+                    },
+                    correctAnswer: 'c',
+                    points: 20,
+                    reference: "Referência: Layout em U (Otimiza o uso de uma única fachada para docas)."
+                }
+            ],
+            3: [ // Nível 3: Solução de Problemas (30 pontos por acerto)
+                {
+                    type: 'multiple-choice',
+                    question: "Em uma simulação, você identifica que as empilhadeiras na área de Picking constantemente cruzam o caminho das mercadorias que estão sendo descarregadas no Recebimento, causando congestionamento. Qual princípio fundamental do Layout está sendo violado e qual ação deve ser tomada?",
+                    options: {
+                        a: "Princípio do Uso de Espaço Cúbico; deve-se armazenar mais alto.",
+                        b: "Princípio do Fluxo Racional (Mínima Distância); é preciso arranjar as áreas para evitar cruzamentos e congestionamentos de materiais.",
+                        c: "Princípio da Flexibilidade; a solução é mudar o tipo de palete."
+                    },
+                    correctAnswer: 'b',
+                    points: 30,
+                    reference: "Referência: Princípio do Fluxo (Evitar zonas e pontos de congestionamento)."
+                },
+                {
+                    type: 'multiple-choice',
+                    question: "Uma empresa lida com cargas pesadas, volumosas e que exigem montagem do cliente (Projeto sob Encomenda). Qual tipo de Arranjo Físico (Layout) seria o mais adequado para esta operação?",
+                    options: {
+                        a: "Layout por Produto (Linha Reta).",
+                        b: "Layout Estacionário (ou de Posição Fixa).",
+                        c: "Layout por Processo (Organização por especialidades)."
+                    },
+                    correctAnswer: 'b',
+                    points: 30,
+                    reference: "Referência: Layout Estacionário (O produto não se move; máquinas e pessoas se movem até ele)."
+                }
+            ]
+        };
+
+        // --- Funções de Inicialização e Controle ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeActivity();
+            // Exibe o ranking local ao carregar
+            displayRanking();
+        });
+
+        function initializeActivity() {
+            // Garante que o cronômetro anterior seja parado, se houver
+            clearInterval(timerInterval);
+            
+            // Reseta variáveis de controle
+            currentLevel = 1;
+            currentScore = 0;
+            timeLeft = 600; // Reinicia o tempo para 10 minutos
+            
+            // Atualiza o display e habilita/desabilita controles
+            document.getElementById('current-score').textContent = `Sua Pontuação: 0`;
+            document.getElementById('finish-btn').disabled = false;
+            document.getElementById('next-level-btn').disabled = true;
+            document.getElementById('next-level-btn').textContent = 'Avançar Nível';
+            document.getElementById('studentName').disabled = false;
+            
+            const timerBox = document.querySelector('.timer-box');
+            timerBox.classList.remove('flash-red');
+            
+            // Inicia o cronômetro e carrega o nível 1
+            startTimer();
+            loadLevel(currentLevel);
+        }
+        
+        // NOVO: Função para reiniciar a atividade
+        function resetActivity() {
+            if (confirm("Tem certeza que deseja REINICIAR a atividade? Sua pontuação atual será perdida.")) {
+                initializeActivity();
+            }
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timer');
+            const timerBox = document.querySelector('.timer-box');
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    finishTask(true); // Finaliza por tempo esgotado
+                }
+                if (timeLeft <= 60 && !timerBox.classList.contains('flash-red')) {
+                    timerBox.classList.add('flash-red'); // Adiciona um alerta visual no último minuto
+                }
+            }, 1000);
+        }
+
+        function loadLevel(level) {
+            const contentDiv = document.getElementById('activity-content');
+            const levelTitle = document.getElementById('level-title');
+            const nextBtn = document.getElementById('next-level-btn');
+            
+            // Atualiza o título e o botão
+            levelTitle.textContent = `Nível ${level}: ${getLevelTitle(level)}`;
+            nextBtn.disabled = true;
+
+            // Constrói o HTML das questões do nível
+            let htmlContent = '';
+            questions[level].forEach((q, index) => {
+                const qId = `q${level}-${index}`;
+                htmlContent += `
+                    <div class="question-item" data-q-index="${index}">
+                        <p><strong>Questão ${index + 1}:</strong> ${q.question}</p>
+                        <div class="options">
+                `;
+                // Adiciona as opções de múltipla escolha
+                for (const [key, value] of Object.entries(q.options)) {
+                    htmlContent += `
+                        <label>
+                            <input type="radio" name="${qId}" value="${key}" onclick="checkAnswer(${level}, ${index}, '${key}')">
+                            ${value}
+                        </label>
+                    `;
+                }
+                htmlContent += `
+                        </div>
+                        <p class="feedback" id="feedback-${qId}"></p>
+                    </div>
+                `;
+            });
+
+            contentDiv.innerHTML = htmlContent;
+        }
+
+        function getLevelTitle(level) {
+            switch(level) {
+                case 1: return "Conceitos Fundamentais";
+                case 2: return "Aplicação de Princípios";
+                case 3: return "Solução de Problemas e Tipos de Layout";
+                default: return "";
+            }
+        }
+
+        function checkAnswer(level, qIndex, selectedOption) {
+            const questionData = questions[level][qIndex];
+            const qId = `q${level}-${qIndex}`;
+            const feedbackElement = document.getElementById(`feedback-${qId}`);
+            const questionElement = document.querySelector(`#activity-content .question-item[data-q-index="${qIndex}"]`);
+            
+            // Desabilita todas as opções após a primeira tentativa
+            document.querySelectorAll(`input[name="${qId}"]`).forEach(input => {
+                input.disabled = true;
+                // Marca a opção correta visualmente
+                if (input.value === questionData.correctAnswer) {
+                     input.parentElement.style.backgroundColor = '#d4edda'; 
+                }
+            });
+
+            // Processa a resposta
+            if (selectedOption === questionData.correctAnswer) {
+                if (!questionElement.classList.contains('answered-correctly')) { // Evita pontuar novamente
+                    currentScore += questionData.points;
+                    questionElement.classList.add('answered-correctly');
+                    feedbackElement.innerHTML = `✅ Correto! Ganhou ${questionData.points} pontos. ${questionData.reference}`;
+                    feedbackElement.style.color = 'green';
+                }
+                // Destaca a correta que ele clicou
+                const correctLabel = document.querySelector(`input[name="${qId}"][value="${selectedOption}"]`).parentElement;
+                correctLabel.style.backgroundColor = '#28a745'; 
+                correctLabel.style.color = 'white'; 
+            } else {
+                feedbackElement.innerHTML = `❌ Incorreto. A resposta correta está destacada em verde. ${questionData.reference}`;
+                feedbackElement.style.color = 'red';
+                // Destaca a incorreta que ele clicou
+                document.querySelector(`input[name="${qId}"][value="${selectedOption}"]`).parentElement.style.backgroundColor = '#f8d7da';
+            }
+            
+            // Atualiza a pontuação no display
+            document.getElementById('current-score').textContent = `Sua Pontuação: ${currentScore}`;
+            
+            // Verifica se todas as questões do nível foram respondidas
+            checkLevelCompletion(level);
+        }
+
+        function checkLevelCompletion(level) {
+            const totalQuestions = questions[level].length;
+            
+            const currentLevelItems = document.querySelectorAll('#activity-content .question-item');
+            let correctCount = 0;
+            currentLevelItems.forEach(item => {
+                if(item.classList.contains('answered-correctly')) {
+                    correctCount++;
+                }
+            });
+
+            if (correctCount === totalQuestions) {
+                const nextBtn = document.getElementById('next-level-btn');
+                nextBtn.disabled = false;
+                
+                if (level < MAX_LEVELS) {
+                    nextBtn.textContent = `Avançar para o Nível ${level + 1}`;
+                } else {
+                    nextBtn.textContent = 'Nível Concluído - Finalizar Tarefa';
+                    nextBtn.onclick = () => finishTask();
+                }
+            }
+        }
+
+        function nextLevel() {
+            if (currentLevel < MAX_LEVELS) {
+                currentLevel++;
+                loadLevel(currentLevel);
+            }
+        }
+
+        function finishTask(timeIsUp = false) {
+            clearInterval(timerInterval);
+            const studentName = document.getElementById('studentName').value.trim() || 'Aluno Anônimo';
+            
+            let message = '';
+            if (timeIsUp) {
+                message = `Tempo esgotado! Sua pontuação final é ${currentScore} pontos.`;
+            } else {
+                message = `Tarefa finalizada! Parabéns, ${studentName}! Sua pontuação final é ${currentScore} pontos.`;
+            }
+            alert(message);
+
+            // Salva a pontuação e atualiza o ranking
+            saveScore(studentName, currentScore);
+            
+            // Desabilita controles
+            document.getElementById('finish-btn').disabled = true;
+            document.getElementById('next-level-btn').disabled = true;
+            document.getElementById('studentName').disabled = true;
+            document.querySelector('.timer-box').classList.remove('flash-red');
+        }
+
+        // --- Funções de Ranking (Utiliza Local Storage) ---
+
+        function getRanking() {
+            // O ranking é armazenado localmente no navegador do aluno
+            const ranking = localStorage.getItem('logisticRanking');
+            return ranking ? JSON.parse(ranking) : [];
+        }
+
+        function saveScore(name, score) {
+            let ranking = getRanking();
+            
+            // Adiciona o novo resultado
+            ranking.push({ name: name, score: score, date: new Date().toLocaleDateString('pt-BR') });
+            
+            // Ordena o ranking (maior pontuação primeiro)
+            ranking.sort((a, b) => b.score - a.score);
+            
+            // Limita o ranking aos 10 melhores
+            ranking = ranking.slice(0, 10);
+            
+            // Salva no Local Storage (ranking local)
+            localStorage.setItem('logisticRanking', JSON.stringify(ranking));
+            
+            displayRanking(); // Atualiza a exibição
+        }
+
+        function displayRanking() {
+            const rankingList = document.getElementById('ranking-list');
+            const rankingData = getRanking();
+            
+            if (rankingData.length === 0) {
+                rankingList.innerHTML = '<li>Nenhum resultado ainda. Seja o primeiro a jogar!</li>';
+                return;
+            }
+
+            rankingList.innerHTML = rankingData.map((item, index) => {
+                let medal = '';
+                if (index === 0) medal = '<span class="medal-icon">🥇</span>';
+                else if (index === 1) medal = '<span class="medal-icon">🥈</span>';
+                else if (index === 2) medal = '<span class="medal-icon">🥉</span>';
+
+                return `
+                    <li>
+                        ${medal} ${item.name}
+                        <span>${item.score} pontos - ${item.date}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+    </script>
+    </body>
+</html>
